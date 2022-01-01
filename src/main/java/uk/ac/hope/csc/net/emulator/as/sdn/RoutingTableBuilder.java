@@ -20,68 +20,82 @@ public class RoutingTableBuilder {
         // The return class
         RoutingTable routingTable = new RoutingTable();
 
+        // How many nodes (Routers) in the graph (AS)
         long count = as.getRouterList().size();
 
         // knownBestRoutes - the N group - starts empty
-        Map<Long, BestRoute> knownBestRoutes = new HashMap<>();
+        Map<Long, Hop> knownBestRoutes = new HashMap<>();
 
         // Candidate routes (including the one to us) all start with
         // cost == MAX_VALUE and previous hop router = -1;
-        Map<Long, BestRoute> candidateRoutes = new HashMap<>();
+        Map<Long, Hop> candidateRoutes = new HashMap<>();
         for(long i=0L; i<count; i++) {
-            candidateRoutes.put(i, new BestRoute(i));
+            candidateRoutes.put(i, new Hop(i));
         }
 
-        // Move our node out of the set of candidate nodes
-        BestRoute temp = candidateRoutes.get(routerId);
-        temp.destRouterId = routerId;
-        temp.cost = 0;
+        // Move our (starting) node out of the set of candidate nodes
+        Hop lowNode = candidateRoutes.get(routerId);
+        lowNode.routerId = routerId;
+        lowNode.cost = 0;
 
-        // Add our node to the solved 'N' group
-        knownBestRoutes.put(temp.destRouterId, temp);
+        // Add our (starting) lowestCostNode to the solved 'N' group
+        knownBestRoutes.put(lowNode.routerId, lowNode);
+        candidateRoutes.remove(lowNode.routerId);
 
         // Start the looping Dijkstra algorithm
         while( candidateRoutes.size() > 0 ) {
-            List<OneHop> nextHops = new ArrayList<>();
-            Router router = as.findRouterByRouterId(temp.destRouterId);
+            Router router = as.findRouterByRouterId(lowNode.routerId);
             for(BufferedOutCx cx : router.getBufferedOutCxes()) {
                 long nextRouterId = cx.getReceivingRouterId();
                 if(!knownBestRoutes.containsKey(nextRouterId)) {
-                    
+                    // Cost from lowestCostNode to
+                    long linkCost = cx.getLink().getCost();
+                    // Update candidate node(s)
+                    Hop br = candidateRoutes.get(nextRouterId);
+                    if (lowNode.cost + linkCost < br.cost) {
+                        br.cost = linkCost + lowNode.cost;
+                        br.previousHopRouterId = lowNode.routerId;
+                    }
                 }
             }
+            // Find the new lowest cost in the candidate routes
+            lowNode = getLowestCostCandidateNode(candidateRoutes);
+            knownBestRoutes.put(lowNode.routerId, lowNode);
+            candidateRoutes.remove(lowNode.routerId);
         }
+
+        // Now do the backwards lookup to create the RouterTable
+        
 
         return routingTable;
     }
 
+    private static Hop getLowestCostCandidateNode(Map<Long, Hop> candidateNodes) {
+        Hop ret = null;
+        long currentowestCost = Long.MAX_VALUE;
+        for ( Hop hac : candidateNodes.values() ) {
+            if(hac.cost < currentowestCost) {
+                currentowestCost = hac.cost;
+                ret = hac;
+            }
+        }
+        return ret;
+    }
+
 }
+
 
 /**
  * Helper class
  */
-class BestRoute {
-
-    public BestRoute(long destRouterId) {
-        this.destRouterId = destRouterId;
+class Hop {
+    public Hop(long routerId) {
+        this.routerId = routerId;
         this.previousHopRouterId = -1;
         this.cost = Long.MAX_VALUE;
     }
-    long destRouterId;
+    long routerId;
     long previousHopRouterId;
     long cost;
 }
 
-/**
- * Helper class
- */
-class OneHop {
-    OneHop(long hereId, long thereId, long hopCost) {
-        this.hereId = hereId;
-        this.thereId = thereId;
-        this.hopCost = hopCost;
-    }
-    long hereId;
-    long thereId;
-    long hopCost;
-}
