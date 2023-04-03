@@ -101,7 +101,7 @@ public class Router implements Tickable {
                     if(out != null) {
                         out.getBuffer().enqueue(d);
                     }
-                    log.info("Router {} - routing datagram id:{} type:{} from:{} to:{} ttl:{}", id, d.getId(), d.getType(), d.getSrcRouterId(), d.getDestRouterId(), d.getTtl());
+                    log.info("Router {} - routing datagram id:{} type:{} from:{} to:{} ttl:{} nextHop:{}", id, d.getId(), d.getType(), d.getSrcRouterId(), d.getDestRouterId(), d.getTtl(), outLinkId);
                 }
             } else {
                 // Log that the Datagram has timed out
