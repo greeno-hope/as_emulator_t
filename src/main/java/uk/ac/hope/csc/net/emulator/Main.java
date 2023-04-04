@@ -13,18 +13,19 @@ public class Main {
         AutonomousSystem as = new AutonomousSystem(5);
 
         // Add links
-        as.addLink(0,1,2);
-        as.addLink(0,2,2);
-        as.addLink(1,3,2);
-        as.addLink(2,4,2);
+        as.addLink(0,1,10);
+        as.addLink(0,2,10);
+        as.addLink(1,3,10);
+        as.addLink(2,4,10);
 
+        
         Datagram d = new Datagram(0, Router.BROADCAST);
         as.findRouterByRouterId(0).sendDatagram(d);
 
 
         while(true) {
             try {
-                //Thread.sleep(10);
+                Thread.sleep(10);
                 as.handleTick();
             } catch (Exception e) {
 

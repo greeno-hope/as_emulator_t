@@ -22,14 +22,21 @@ public class Router implements Tickable {
 
     public static final long BROADCAST = -1;
 
-    // This is to allow backward looking inspection of the AS from
-    // breakpoints in Router functions
+    /**
+     * The AS to which THIS Router belongs
+     */
     protected AutonomousSystem autonomousSystem;
 
     private static long _id = 0;
 
+    /**
+     * Router ID.This acts as an address field for the AS emulator
+     */
     protected long id;
 
+    /**
+     * This BufferedInCx acts as the in buffer from the (fake) subnet that this router sits at the border of
+     */
     protected BufferedInCx lanInBuffer;
 
     protected List<BufferedInCx> bufferedInCxes;
@@ -78,7 +85,7 @@ public class Router implements Tickable {
     }
 
     public void sendDatagram(Datagram d) {
-        log.info("Router {} - sending datagram id:{} type:{} from:{} to:{} ttl={}", id, d.getId(), d.getType(), d.getSrcRouterId(), d.getDestRouterId(), d.getTtl());
+        log.info("Router {} - sending datagram id:{} type:{} src:{} dest:{} ttl={}", id, d.getId(), d.getType(), d.getSrcRouterId(), d.getDestRouterId(), d.getTtl());
         lanInBuffer.getBuffer().enqueue(d);
     }
 
@@ -98,7 +105,7 @@ public class Router implements Tickable {
             if (d.getTtl() != 0) {
                 d.decTtl();
                 if(d.getDestRouterId() == id) {
-                    log.info("Router {} - datagram id:{} type:{} from:{} to:{} DELIVERED", id, d.getId(), d.getType(), d.getSrcRouterId(), d.getDestRouterId());
+                    log.info("Router {} - datagram id:{} type:{} src:{} dest:{} DELIVERED", id, d.getId(), d.getType(), d.getSrcRouterId(), d.getDestRouterId());
                 } else {
                     if(d.getDestRouterId() == BROADCAST) {
                         for(BufferedOutCx bol : bufferedOutCxes) {
@@ -114,12 +121,12 @@ public class Router implements Tickable {
                         if(out != null) {
                             out.getBuffer().enqueue(new Datagram(d));
                         }
-                        log.info("Router {} - routing datagram id:{} type:{} from:{} to:{} ttl:{} nextHop:{}", id, d.getId(), d.getType(), d.getSrcRouterId(), d.getDestRouterId(), d.getTtl(), outLinkId);
+                        log.info("Router {} - routing datagram id:{} type:{} src:{} dest:{} ttl:{} nextHop:{}", id, d.getId(), d.getType(), d.getSrcRouterId(), d.getDestRouterId(), d.getTtl(), outLinkId);
                     }
                 }
             } else {
                 // Log that the Datagram has timed out
-                log.info("Router {} - datagram id:{} type:{} from:{} to:{} EXPIRED ttl=0", id, d.getId(), d.getType(), d.getSrcRouterId(), d.getDestRouterId());
+                log.info("Router {} - datagram id:{} type:{} src:{} dest:{} EXPIRED ttl=0", id, d.getId(), d.getType(), d.getSrcRouterId(), d.getDestRouterId());
             }
         }
     }
