@@ -1,15 +1,11 @@
 package uk.ac.hope.csc.net.emulator.as.component.buffers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import uk.ac.hope.csc.net.emulator.as.packet.Datagram;
 
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class RouterInBuffer {
-
-    private static Logger log = LoggerFactory.getLogger(RouterInBuffer.class);
+public  class RouterInBuffer {
 
     public static long MAX_BUFF_SIZE = 255;
 

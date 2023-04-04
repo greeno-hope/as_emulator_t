@@ -21,7 +21,7 @@ public class AutonomousSystem implements Tickable {
 
         // Create routerCount initial routers
         for (long i=0; i<routerCount; i++) {
-            routerList.add(new Router());
+            routerList.add(new Router(this));
         }
     }
 

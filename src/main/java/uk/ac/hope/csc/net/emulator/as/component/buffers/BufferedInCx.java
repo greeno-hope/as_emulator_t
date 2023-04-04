@@ -5,21 +5,30 @@ import org.slf4j.LoggerFactory;
 import uk.ac.hope.csc.net.emulator.as.component.Link;
 import uk.ac.hope.csc.net.emulator.as.component.Router;
 
-public class BufferedInLink {
+public class BufferedInCx {
 
-    private static Logger log = LoggerFactory.getLogger(BufferedInLink.class);
+    private static Logger log = LoggerFactory.getLogger(BufferedInCx.class);
 
-    private long id;
+    private long sendingRouterId;
+    private long linkId;
 
     private RouterInBuffer buffer;
     private Link link;
 
-    public BufferedInLink(Router router, Link link) {
+    public BufferedInCx(Router router, Link link) {
         // The link that will write to this BufferedInLink
         this.link = link;
-        // Set the id of this BufferedInLink to be the id of the
-        // previous hop router
-        this.id = link.getTerminatingRouter(router).getId();
+        if(link != null) {
+            // Set the ID of this BufferedInLink to be the ID of the
+            // previous hop router
+            this.sendingRouterId = link.getTerminatingRouter(router).getId();
+            this.linkId = link.getId();
+        } else {
+            // If link is null we are a LAN source buffer just make
+            // our ID equal the router ID
+            this.sendingRouterId = router.getId();
+            this.linkId = -1;
+        }
         // Create a new in buffer
         buffer = new RouterInBuffer();
     }
@@ -41,6 +50,7 @@ public class BufferedInLink {
     }
 
     public long getLinkId() {
-        return id;
+        return linkId;
     }
+
 }

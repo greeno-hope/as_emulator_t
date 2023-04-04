@@ -10,29 +10,21 @@ public class Main {
     public static void main(String[] args) {
 
         // Setup
-        AutonomousSystem as = new AutonomousSystem(3);
+        AutonomousSystem as = new AutonomousSystem(5);
 
-        // Add 1 link
-        as.addLink(0, 1, 20);
-        as.addLink(1,2,20);
+        // Add links
+        as.addLink(0,1,2);
+        as.addLink(0,2,2);
+        as.addLink(1,3,2);
+        as.addLink(2,4,2);
 
-        Router sourceRouter = as.findRouterByRouterId(0);
-        RoutingTable rt = new RoutingTable();
-        rt.setPath(1, 1);
-        rt.setPath(2, 1);
+        Datagram d = new Datagram(0, Router.BROADCAST);
+        as.findRouterByRouterId(0).sendDatagram(d);
 
-        Router midRouter = as.findRouterByRouterId(1);
-        RoutingTable rt2 = new RoutingTable();
-        rt2.setPath(2, 2);
-
-        Datagram d = new Datagram(0, 2);
-        sourceRouter.setRoutingTable(rt);
-        midRouter.setRoutingTable(rt2);
-        sourceRouter.sendDatagram(d);
 
         while(true) {
             try {
-                Thread.sleep(10);
+                //Thread.sleep(10);
                 as.handleTick();
             } catch (Exception e) {
 

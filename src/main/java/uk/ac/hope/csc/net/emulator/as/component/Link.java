@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.hope.csc.net.emulator.as.Tickable;
-import uk.ac.hope.csc.net.emulator.as.component.buffers.BufferedInLink;
+import uk.ac.hope.csc.net.emulator.as.component.buffers.BufferedInCx;
 import uk.ac.hope.csc.net.emulator.as.packet.Datagram;
 
 public class Link implements Tickable {
@@ -13,41 +13,43 @@ public class Link implements Tickable {
 
     private static long _id = 0;
 
-    private Router routerA;
-    private Router routerB;
+    private Router router0;
+    private Router router1;
 
-    private Datagram datagramAtoB;
-    private Datagram datagramBtoA;
+    private Datagram datagram01;
+    private Datagram datagram10;
 
-    long aToBCountdown;
-    long bToACountdown;
+    long countdown01;
+    long countdown10;
 
     long cost;
     long id;
 
     public boolean sendDatagram(Datagram datagram, Router from, Router to) {
         boolean ret = false;
-        if(from == routerA){
+        if(from == router0){
             // A to B traffic
-            if(datagramAtoB == null) {
-                datagramAtoB =  datagram;
-                aToBCountdown = cost;
+            if(datagram01 == null) {
+                datagram01 =  datagram;
+                countdown01 = cost;
                 ret = true;
+                log.info("Link:{} - accepting datagram id:{} in_router:{} out_router:{}", id, datagram.getId(), router0.getId(), router1.getId());
             }
         } else {
             // B to A traffic
-            if(datagramBtoA == null){
-                datagramBtoA =  datagram;
-                bToACountdown = cost;
+            if(datagram10 == null){
+                datagram10 =  datagram;
+                countdown10 = cost;
                 ret = true;
+                log.info("Link:{} - accepting datagram id:{} in_router:{} out_router:{}", id, datagram.getId(), router1.getId(), router0.getId());
             }
         }
         return ret;
     }
 
-    public Link(Router routerA, Router routerB, long cost) {
-        this.routerA = routerA;
-        this.routerB = routerB;
+    public Link(Router router0, Router router1, long cost) {
+        this.router0 = router0;
+        this.router1 = router1;
         this.cost = cost;
         this.id = _id++;
     }
@@ -55,33 +57,35 @@ public class Link implements Tickable {
     @Override
     public void handleTick() {
 
-        if(datagramAtoB != null) {
-            if(0 == aToBCountdown--) {
+        if(datagram01 != null) {
+            if(0 == countdown01--) {
                 // There's a datagram from A to B and its cost has expired.
                 // relay the datagram to a router in link
-                BufferedInLink bil = routerB.getBufferedInLinkByLinkId(id);
-                bil.getBuffer().enqueue(datagramAtoB);
-                datagramAtoB = null;
+                BufferedInCx bil = router1.getBufferedInLinkByLinkId(id);
+                bil.getBuffer().enqueue(datagram01);
+                log.info("Link:{} - writing datagram id:{} from in_router:{} to out_router:{}", id, datagram01.getId(), router0.getId(), router1.getId());
+                datagram01 = null;
             }
         }
 
-        if(datagramBtoA != null) {
-            if(0 == bToACountdown--) {
+        if(datagram10 != null) {
+            if(0 == countdown10--) {
                 // There's a datagram from B to A and its cost has expired.
                 // relay the datagram to a router in link
-                BufferedInLink bil = routerA.getBufferedInLinkByLinkId(id);
-                bil.getBuffer().enqueue(datagramBtoA);
-                datagramBtoA = null;
+                BufferedInCx bil = router0.getBufferedInLinkByLinkId(id);
+                bil.getBuffer().enqueue(datagram10);
+                log.info("Link:{} - writing datagram id:{} from in_router:{} to out_router:{}", id, datagram10.getId(), router1.getId(), router0.getId());
+                datagram10 = null;
             }
         }
     }
 
-    public Router getRouterA() {
-        return routerA;
+    public Router getRouter0() {
+        return router0;
     }
 
-    public Router getRouterB() {
-        return routerB;
+    public Router getRouter1() {
+        return router1;
     }
 
     public long getCost() {
@@ -97,18 +101,18 @@ public class Link implements Tickable {
     }
 
     public boolean busy(Router queryingRouter) {
-        if(queryingRouter == routerA) {
-            return datagramAtoB != null;
+        if(queryingRouter == router0) {
+            return datagram01 != null;
         } else {
-            return datagramBtoA != null;
+            return datagram10 != null;
         }
     }
 
     public Router getTerminatingRouter(Router queryingRouter) {
-        if(queryingRouter == routerA) {
-            return routerB;
-        } else if (queryingRouter == routerB){
-            return routerA;
+        if(queryingRouter == router0) {
+            return router1;
+        } else if (queryingRouter == router1){
+            return router0;
         } else {
             throw new IllegalArgumentException("Invalid or null router");
         }

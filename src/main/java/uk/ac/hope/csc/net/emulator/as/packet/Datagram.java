@@ -14,11 +14,28 @@ public class Datagram {
 
     protected String type;
 
+    /**
+     * Constructor
+     * @param srcRouterId
+     * @param destRouterId
+     */
     public Datagram(long srcRouterId, long destRouterId ) {
         this.id = _id++;
         this.srcRouterId = srcRouterId;
         this.destRouterId = destRouterId;
         type = TYPE_DATA;
+    }
+
+    /**
+     * Copy constructor
+     * @param d
+     */
+    public Datagram(Datagram d) {
+        this.id = d.id;
+        this.srcRouterId = d.srcRouterId;
+        this.destRouterId = d.destRouterId;
+        this.ttl = d.ttl;
+        this.type = d.type;
     }
 
     public long getId() {
