@@ -2,26 +2,28 @@ package uk.ac.hope.csc.net.emulator;
 
 import uk.ac.hope.csc.net.emulator.as.AutonomousSystem;
 import uk.ac.hope.csc.net.emulator.as.component.Router;
-import uk.ac.hope.csc.net.emulator.as.component.RoutingTable;
 import uk.ac.hope.csc.net.emulator.as.packet.Datagram;
+import uk.ac.hope.csc.net.emulator.utils.FileUtils;
+
+import java.io.FileNotFoundException;
 
 public class Main {
 
     public static void main(String[] args) {
 
         // Setup
-        AutonomousSystem as = new AutonomousSystem(5);
+        AutonomousSystem as = new AutonomousSystem();
 
         // Add links
-        as.addLink(0,1,10);
-        as.addLink(0,2,10);
-        as.addLink(1,3,10);
-        as.addLink(2,4,10);
+        try {
+            as.loadNetworkFromCsv("./files/net1.csv");
+        } catch (FileNotFoundException fnfe) {
+            fnfe.printStackTrace();
+            System.exit(1);
+        }
 
-        
         Datagram d = new Datagram(0, Router.BROADCAST);
         as.findRouterByRouterId(0).sendDatagram(d);
-
 
         while(true) {
             try {

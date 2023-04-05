@@ -12,10 +12,6 @@ import uk.ac.hope.csc.net.emulator.as.component.buffers.BufferedInCx;
 import uk.ac.hope.csc.net.emulator.as.component.buffers.BufferedOutCx;
 import uk.ac.hope.csc.net.emulator.as.packet.Datagram;
 
-// TODO - Do I want to identify outlinks in terms of nextHopRouterIds rather than link ID's per-se ?
-// TODO - YES - it means that I can get the router endpoints (especially the in router) more easily
-// TODO - Routing tables are easier to configure (perhaps) as dest, nestHopRouter (both longs) ?
-
 public class Router implements Tickable {
 
     static Logger log = LoggerFactory.getLogger(Router.class);
@@ -27,6 +23,9 @@ public class Router implements Tickable {
      */
     protected AutonomousSystem autonomousSystem;
 
+    /**
+     * Just used as an incrementing ID generator
+     */
     private static long _id = 0;
 
     /**
@@ -39,11 +38,27 @@ public class Router implements Tickable {
      */
     protected BufferedInCx lanInBuffer;
 
+    /**
+     * List of buffered in connections
+     */
     protected List<BufferedInCx> bufferedInCxes;
+
+    /**
+     * List of buffered out connections
+     */
     protected List<BufferedOutCx> bufferedOutCxes;
 
+    /**
+     * Wrapper class for a Map<Long, Long> that maps a destination router ID
+     * to a next hop router ID
+     */
     protected RoutingTable routingTable;
 
+    /**
+     * Constructor
+     * @param autonomousSystem - is a reference to the AS. means that if we breakpoint in
+     *                         a router function we can see what's going on around us.
+     */
     public Router(AutonomousSystem autonomousSystem) {
         this.autonomousSystem = autonomousSystem;
         this.id = _id++;
@@ -53,7 +68,12 @@ public class Router implements Tickable {
         routingTable = new RoutingTable();
     }
 
-    public void addLink(Link link) {
+    /**
+     * Adds a 2-way (undirected link) this means we need one in buffer and one
+     * out buffer for the link
+     * @param link
+     */
+    public void addUndirectedLink(Link link) {
 
         // Set up the in links
         BufferedInCx bufferedInCx = new BufferedInCx(this, link);
@@ -63,18 +83,35 @@ public class Router implements Tickable {
         bufferedOutCxes.add(bufferedOutCx);
     }
 
+    /**
+     * Sets a new routing table for this router. Can use this to simulate SDNs
+     * @param routingTable
+     */
     public void setRoutingTable(RoutingTable routingTable) {
         this.routingTable = routingTable;
     }
 
+    /**
+     * Flushes the routing table. Can do this as part of a network reset
+     * after pertubation etc.
+     */
     public void resetRoutingTable() {
         routingTable = new RoutingTable();
     }
 
+    /**
+     * Returns the Router id. In this implementation the id is the address.
+     * @return
+     */
     public long getId() {
         return id;
     }
 
+    /**
+     *
+     * @param id
+     * @return
+     */
     public BufferedOutCx findBufferedOutLinkById(long id) {
         for(BufferedOutCx out : bufferedOutCxes) {
             if(out.getReceivingRouterId() == id) {
@@ -103,7 +140,10 @@ public class Router implements Tickable {
             // Dequeue
             Datagram d = bin.getBuffer().dequeue();
             if (d.getTtl() != 0) {
-                d.decTtl();
+                if(d.getSrcRouterId() != id) {
+                    // Decrement the hop counter IF the datagram does not originate here
+                    d.decTtl();
+                }
                 if(d.getDestRouterId() == id) {
                     log.info("Router {} - datagram id:{} type:{} src:{} dest:{} DELIVERED", id, d.getId(), d.getType(), d.getSrcRouterId(), d.getDestRouterId());
                 } else {
