@@ -122,4 +122,12 @@ public class AutonomousSystem implements Tickable {
         }
         return null;
     }
+
+    public List<Router> getRouterList() {
+        return routerList;
+    }
+
+    public List<Link> getLinkList() {
+        return linkList;
+    }
 }

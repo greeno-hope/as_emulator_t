@@ -204,4 +204,11 @@ public class Router implements Tickable {
         processOutBuffers();
     }
 
+    public List<BufferedInCx> getBufferedInCxes() {
+        return bufferedInCxes;
+    }
+
+    public List<BufferedOutCx> getBufferedOutCxes() {
+        return bufferedOutCxes;
+    }
 }

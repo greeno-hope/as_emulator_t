@@ -10,6 +10,12 @@ import java.util.Scanner;
 
 public class FileUtils {
 
+    /**
+     * Reads an undirected network from a CSV file line format - 'rId1, rId2, cost'
+     * @param as AS to load network into
+     * @param path path to CSV file
+     * @throws FileNotFoundException
+     */
     public static void loadUndirectedNetworkFromCsv(AutonomousSystem as, String path) throws FileNotFoundException {
 
         // Read CSV lines into a List
@@ -28,5 +34,9 @@ public class FileUtils {
             long cost = Long.parseLong(values[2]);
             as.addlink(r1, r2, cost);
         }
+    }
+
+    public static void writeUndirectedNetworkToCsv(AutonomousSystem as, String path) {
+        throw new UnsupportedOperationException();
     }
 }

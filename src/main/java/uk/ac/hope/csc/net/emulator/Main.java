@@ -2,7 +2,9 @@ package uk.ac.hope.csc.net.emulator;
 
 import uk.ac.hope.csc.net.emulator.as.AutonomousSystem;
 import uk.ac.hope.csc.net.emulator.as.component.Router;
+import uk.ac.hope.csc.net.emulator.as.component.RoutingTable;
 import uk.ac.hope.csc.net.emulator.as.packet.Datagram;
+import uk.ac.hope.csc.net.emulator.as.sdn.RoutingTableBuilder;
 import uk.ac.hope.csc.net.emulator.utils.FileUtils;
 
 import java.io.FileNotFoundException;
@@ -21,6 +23,13 @@ public class Main {
             fnfe.printStackTrace();
             System.exit(1);
         }
+
+        // Build routing tables (SDN style)
+        for(Router r : as.getRouterList()) {
+            RoutingTable rt = RoutingTableBuilder.buildWithLinkState(as, r.getId());
+            r.setRoutingTable(rt);
+        }
+
 
         Datagram d = new Datagram(0, Router.BROADCAST);
         as.findRouterByRouterId(0).sendDatagram(d);
