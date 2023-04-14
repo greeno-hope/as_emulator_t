@@ -65,9 +65,23 @@ public class RoutingTableBuilder {
         }
 
         // Now do the backwards lookup to create the RouterTable
-        
+        return buildRoutingTable(routerId, knownBestRoutes);
+    }
 
-        return routingTable;
+    private static RoutingTable buildRoutingTable(long routerId, Map<Long, Hop> knownBestRoutes) {
+        RoutingTable rt = new RoutingTable();
+        for(Hop h : knownBestRoutes.values()) {
+            if (routerId != h.routerId) {
+                long dest = h.routerId;
+                long nextHop = h.routerId;
+                while (h.previousHopRouterId != routerId) {
+                    h = knownBestRoutes.get(h.previousHopRouterId);
+                    nextHop = h.routerId;
+                }
+                rt.setPath(dest, nextHop);
+            }
+        }
+        return rt;
     }
 
     private static Hop getLowestCostCandidateNode(Map<Long, Hop> candidateNodes) {

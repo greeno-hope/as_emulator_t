@@ -31,8 +31,8 @@ public class Main {
         }
 
 
-        Datagram d = new Datagram(0, Router.BROADCAST);
-        as.findRouterByRouterId(0).sendDatagram(d);
+        Datagram d = new Datagram(3, 12);
+        as.findRouterByRouterId(3).sendDatagram(d);
 
         while(true) {
             try {
